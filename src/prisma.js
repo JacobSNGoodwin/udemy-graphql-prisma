@@ -5,33 +5,35 @@ const prisma = new Prisma({
   endpoint: 'http://localhost:4466'
 })
 
+export { prisma as default }
+
 // prisma.query prisma.mutation prisma.subscription prisma.exists
 
 
-const createPostForUser = async (authId, data) => {
-  const usereExists = await prisma.exists.User({
-    id: authId
-  })
+// const createPostForUser = async (authId, data) => {
+//   const usereExists = await prisma.exists.User({
+//     id: authId
+//   })
 
-  if (!usereExists) {
-    throw new Error('Use not found')
-  }
+//   if (!usereExists) {
+//     throw new Error('Use not found')
+//   }
 
-  const post = await prisma.mutation.createPost({
-    data: {
-      ...data,
-      author: {
-        connect: {
-          id: authId
-        }
-      }
-    }
-  },
-    '{ author { id name email posts { id title published } } }'
-  )
+//   const post = await prisma.mutation.createPost({
+//     data: {
+//       ...data,
+//       author: {
+//         connect: {
+//           id: authId
+//         }
+//       }
+//     }
+//   },
+//     '{ author { id name email posts { id title published } } }'
+//   )
 
-  return post.author
-}
+//   return post.author
+// }
 
 // createPostForUser('cjrjtwstd03tk0761aidqzfll', {
 //   title: 'Best Protein Powders',
@@ -45,26 +47,26 @@ const createPostForUser = async (authId, data) => {
 //     console.log(error)
 //   })
 
-const updatePostForUser = async (postId, data) => {
-  const postExists = await prisma.exists.Post({
-    id: postId
-  })
+// const updatePostForUser = async (postId, data) => {
+//   const postExists = await prisma.exists.Post({
+//     id: postId
+//   })
 
-  if (!postExists)  {
-    throw new Error('Post not found')
-  }
+//   if (!postExists)  {
+//     throw new Error('Post not found')
+//   }
 
-  const post  = await prisma.mutation.updatePost({
-    data: data,
-    where: {
-      id: postId
-    }
-  },
-    '{ author { id name email posts { id title published } } }'
-  )
+//   const post  = await prisma.mutation.updatePost({
+//     data: data,
+//     where: {
+//       id: postId
+//     }
+//   },
+//     '{ author { id name email posts { id title published } } }'
+//   )
 
-  return post.author
-}
+//   return post.author
+// }
 
 
 // updatePostForUser('cjrln35t4000w0814lk0ifmzq', {
