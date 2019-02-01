@@ -7,7 +7,16 @@ const prisma = new Prisma({
 
 // prisma.query prisma.mutation prisma.subscription prisma.exists
 
+
 const createPostForUser = async (authId, data) => {
+  const usereExists = await prisma.exists.User({
+    id: authId
+  })
+
+  if (!usereExists) {
+    throw new Error('Use not found')
+  }
+
   const post = await prisma.mutation.createPost({
     data: {
       ...data,
@@ -18,55 +27,54 @@ const createPostForUser = async (authId, data) => {
       }
     }
   },
-    '{ id }'
+    '{ author { id name email posts { id title published } } }'
   )
 
-  const user = await prisma.query.user({
-    where: {
-      id: authId
-    }
-  },
-    '{ id name email posts { id title published } }'
-  )
-
-  return user
+  return post.author
 }
 
+// createPostForUser('cjrjtwstd03tk0761aidqzfll', {
+//   title: 'Best Protein Powders',
+//   body: 'Gonna get muskelie',
+//   published: true
+// })
+//   .then(user => {
+//     console.log(JSON.stringify(user, undefined, 2))
+//   })
+//   .catch(error => {
+//     console.log(error)
+//   })
+
 const updatePostForUser = async (postId, data) => {
+  const postExists = await prisma.exists.Post({
+    id: postId
+  })
+
+  if (!postExists)  {
+    throw new Error('Post not found')
+  }
+
   const post  = await prisma.mutation.updatePost({
     data: data,
     where: {
       id: postId
     }
   },
-    '{ author { id } }'
+    '{ author { id name email posts { id title published } } }'
   )
 
-  const user = await prisma.query.user({
-    where: {
-      id: post.author.id
-    }
-  },
-    '{ id name email posts { id title published } }'
-  )
-
-  return user
+  return post.author
 }
 
-// createPostForUser('cjrjtwstd03tk0761aidqzfll', {
-//   title: 'Worst Extreme Sports',
-//   body: 'Sporty McSporterton',
-//   published: true
+
+// updatePostForUser('cjrln35t4000w0814lk0ifmzq', {
+//   title: 'We are live again!',
+//   body: 'Some things come back from the dead',
+//   published: true 
 // })
 //   .then(user => {
 //     console.log(JSON.stringify(user, undefined, 2))
 //   })
-
-// updatePostForUser('cjrln35t4000w0814lk0ifmzq', {
-//   title: 'No Longer Live',
-//   body: 'Some things cannot last forever',
-//   published: false 
-// })
-//   .then(user => {
-//     console.log(JSON.stringify(user, undefined, 2))
+//   .catch(error => {
+//     console.log(error)
 //   })
