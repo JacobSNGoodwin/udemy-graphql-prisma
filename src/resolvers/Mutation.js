@@ -29,7 +29,7 @@ const Mutation = {
             info
         )
     },
-    createPost(parent, args, { prisma }, info) {
+    async createPost(parent, args, { prisma }, info) {
         return prisma.mutation.createPost({
             data: {
                 title: args.data.title,
@@ -45,30 +45,24 @@ const Mutation = {
             info
         )
     },
-    deletePost(parent, args, { db, pubsub }, info) {
-        // const postIndex = db.posts.findIndex((post) => post.id === args.id)
-
-        // if (postIndex === -1) {
-        //     throw new Error('Post not found')
-        // }
-
-        // // array destructuring
-        // const [post] = db.posts.splice(postIndex, 1)
-
-        // db.comments = db.comments.filter((comment) => comment.post !== args.id)
-
-        // if (post.published) {
-        //   pubsub.publish('post', {
-        //     post: {
-        //       mutation: 'DELETED',
-        //       data: post
-        //     }
-        //   })
-        // }
-
-        // return post
+    async deletePost(parent, args, { prisma }, info) {
+        return prisma.mutation.deletePost({
+            where: {
+                id: args.id
+            }
+        },
+            info
+        )
     },
-    updatePost(parent, args, { db, pubsub }, info) {
+    async updatePost(parent, args, { prisma }, info) {
+        return prisma.mutation.updatePost({
+            data: args.data,
+            where: {
+                id: args.id
+            }
+        },
+            info
+        )
         // const { id, data } = args
         // const post = db.posts.find((post) => post.id === id)
         // const originalPost = { ...post } // clone of post before it was updated
