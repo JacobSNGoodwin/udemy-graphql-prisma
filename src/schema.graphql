@@ -94,5 +94,5 @@ type PostSubscriptionPayload {
 
 type CommentSubscriptionPayload {
   mutation: MutationType!
-  node: Comment!
+  node: Comment
 }
