@@ -13,8 +13,14 @@ const Subscription = {
     }
   },
   post: {
-    subscribe(parnet, args, { db, pubsub }, info) {
-      return pubsub.asyncIterator('post')
+    subscribe(parnet, args, { prisma }, info) {
+      return prisma.subscription.post({
+        where: {
+          node: {
+            published: true
+          }
+        }
+      }, info)
     }
   }
 }
