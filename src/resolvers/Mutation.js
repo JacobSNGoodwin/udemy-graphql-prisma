@@ -28,7 +28,7 @@ const Mutation = {
                 ...args.data,
                 password: password
             }
-        }, info)
+        })
 
         return {
             user,
@@ -57,26 +57,24 @@ const Mutation = {
             token: jwt.sign({ userId: user.id }, 'thisisasecret')
         }
     },
-    async deleteUser(parent, args, { prisma }, info) {
-        // const userExists = await prisma.exists.User({ id: args.id })
-
-        // if (!userExists) {
-        //     throw new Error('The user does not exist')
-        // }
-
-        return prisma.mutation.deleteUser({ where: { id: args.id } }, info)
+    deleteUser(parent, args, { prisma, request }, info) {
+       
+        const userId = getUserId(request)
+        return prisma.mutation.deleteUser({ where: { id: userId } }, info)
     },
-    async updateUser(parent, args, { prisma }, info) {
+    updateUser(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request)
+
         return prisma.mutation.updateUser({
             where: {
-                id: args.id
+                id: userId
             },
             data: args.data 
         },
             info
         )
     },
-    async createPost(parent, args, { prisma, request }, info) {
+    createPost(parent, args, { prisma, request }, info) {
         const userId = getUserId(request)
 
         return prisma.mutation.createPost({
@@ -94,7 +92,19 @@ const Mutation = {
             info
         )
     },
-    async deletePost(parent, args, { prisma }, info) {
+    async deletePost(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request)
+        const postExists = await prisma.exists.Post({
+            id: args.id,
+            author: {
+                id: userId
+            }
+        })
+
+        if (!postExists) {
+            throw new Error('Unable to delete post')
+        }
+
         return prisma.mutation.deletePost({
             where: {
                 id: args.id
@@ -103,7 +113,7 @@ const Mutation = {
             info
         )
     },
-    async updatePost(parent, args, { prisma }, info) {
+    updatePost(parent, args, { prisma }, info) {
         return prisma.mutation.updatePost({
             data: args.data,
             where: {
@@ -113,7 +123,7 @@ const Mutation = {
             info
         )
     },
-    async createComment(parent, args, { prisma }, info) {
+    createComment(parent, args, { prisma }, info) {
         return prisma.mutation.createComment({
             data: {
                 text: args.data.text,
