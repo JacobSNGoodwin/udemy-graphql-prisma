@@ -3,17 +3,6 @@ import jwt from 'jsonwebtoken'
 
 import getUserId from '../utils/getUserId'
 
-const dummy = async () => {
-    const email = 'joe@bob.bob'
-    const password = 'password123'
-
-    const hashedPassword = '$2a$10$Sw8hggFX9mUHKQdLzxL7D.fqGawLAIIynqD3ESQeUeKRG9FxdZLBW'
-
-    const isMatch = await bcrypt.compare(password, hashedPassword)
-    console.log(isMatch)
-}
-
-dummy()
 
 const Mutation = {
     async createUser(parent, args, { prisma }, info) {
@@ -113,7 +102,19 @@ const Mutation = {
             info
         )
     },
-    updatePost(parent, args, { prisma }, info) {
+    async updatePost(parent, args, { prisma, request }, info) {
+        const userId = getUserId(request)
+        const postExists = await prisma.exists.Post({
+            id: args.id,
+            author: {
+                id: userId
+            }
+        })
+
+        if (!postExists) {
+            throw new Error('Unable to update post')
+        }
+
         return prisma.mutation.updatePost({
             data: args.data,
             where: {
