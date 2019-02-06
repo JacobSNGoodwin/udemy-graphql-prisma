@@ -3,7 +3,10 @@ import getUserId from '../utils/getUserId'
 const Query = {
     users(parent, args, { prisma }, info) {
         // info provides info or requst coming from clients
-        const opArgs = {}
+        const opArgs = {
+          first: args.first,
+          skip: args.skip
+        }
 
         if (args.query) {
             opArgs.where =  {
