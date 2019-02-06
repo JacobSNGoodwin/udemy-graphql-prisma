@@ -41,6 +41,8 @@ const Query = {
     posts(parent, args, { prisma }, info) {
         // default is to show only published posts except for user
         const opArgs = {
+            first: args.first,
+            skip: args.skip,
             where: {
                 published: true
             }
