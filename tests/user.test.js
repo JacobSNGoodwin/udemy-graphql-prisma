@@ -1,7 +1,7 @@
-test('First Test Case', () => {
-  1 + 2
-})
+import { getFirstName } from '../src/utils/user'
 
-test('Second Test Case', () => {
-  1 + 2
+test('Should return first name when given full name', () => {
+  const firstName = getFirstName('Jacob Goodwin')
+
+  expect(firstName).toBe('Jacob')
 })
