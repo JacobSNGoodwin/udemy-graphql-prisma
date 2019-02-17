@@ -10,7 +10,9 @@ const client = new ApolloBoost({
 
 beforeEach(async () => {
   await prisma.mutation.deleteManyPosts()
+ 
   await prisma.mutation.deleteManyUsers()
+
   const user = await prisma.mutation.createUser({
     data: {
       name: 'Bob',
@@ -18,7 +20,7 @@ beforeEach(async () => {
       password: bcrypt.hashSync('blablabla1234')
     }
   })
-
+ 
   await prisma.mutation.createPost({
     data: {
       title: 'A published post',
@@ -31,6 +33,7 @@ beforeEach(async () => {
       }
     }
   })
+  
   await prisma.mutation.createPost({
     data: {
       title: 'An unpublished post',
@@ -52,7 +55,7 @@ test('Should create a new user', async () => {
         data: {
           name: "Jacob"
           email: "jacob@example.com"
-          password: "password1234"
+          password: "blablabla1234"
         }
       ){
         token
@@ -112,4 +115,39 @@ test('Should expose public posts', async () => {
 
   expect(response.data.posts.length).toBe(1)
   expect(response.data.posts[0].published).toBe(true)
+})
+
+test('Should not login with bad credentials', async () => {
+  const login = gql`
+    mutation {
+      login(
+        data: {
+          email: "bob@bob.com"
+          password: "blablabla"
+        }
+      ) {
+        token
+      }
+    }
+  `
+
+  await expect(client.mutate({mutation: login})).rejects.toThrow()
+})
+
+test('Should not create user if password is less than 8 characters', async () => {
+  const createUser = gql`
+    mutation {
+      createUser(
+        data: {
+          name: "Jacob"
+          email: "jacob@test.com"
+          password: "bla1234"
+        }
+      ) {
+        token
+      }
+    }
+  `
+
+  await expect(client.mutate({mutation: createUser})).rejects.toThrow()
 })
