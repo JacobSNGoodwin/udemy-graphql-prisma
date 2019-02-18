@@ -1,54 +1,16 @@
-import 'cross-fetch/polyfill'
-import '@babel/polyfill'
-import ApolloBoost, { gql } from 'apollo-boost'
-import bcrypt from 'bcryptjs'
-import prisma from '../src/prisma'
+import "cross-fetch/polyfill"
+import "@babel/polyfill"
+import { gql } from "apollo-boost"
 
-const client = new ApolloBoost({
-  uri: 'http://localhost:4000'
-})
+import prisma from "../src/prisma"
+import seedDatabase, { userOne } from "./utils/seedDatabase"
+import getClient from "./utils/getClient"
 
-beforeEach(async () => {
-  await prisma.mutation.deleteManyPosts()
- 
-  await prisma.mutation.deleteManyUsers()
+const client = getClient()
 
-  const user = await prisma.mutation.createUser({
-    data: {
-      name: 'Bob',
-      email: 'bob@bob.com',
-      password: bcrypt.hashSync('blablabla1234')
-    }
-  })
- 
-  await prisma.mutation.createPost({
-    data: {
-      title: 'A published post',
-      body: 'I cannot wait for my readers to read this',
-      published: true,
-      author: {
-        connect: {
-          id: user.id
-        }
-      }
-    }
-  })
-  
-  await prisma.mutation.createPost({
-    data: {
-      title: 'An unpublished post',
-      body: 'I hope nobody reads this ever',
-      published: false,
-      author: {
-        connect: {
-          id: user.id
-        }
-      }
-    }
-  })
-})
+beforeEach(seedDatabase)
 
-test('Should create a new user', async () => {
+test("Should create a new user", async () => {
   const createUser = gql`
     mutation {
       createUser(
@@ -57,7 +19,7 @@ test('Should create a new user', async () => {
           email: "jacob@example.com"
           password: "blablabla1234"
         }
-      ){
+      ) {
         token
         user {
           id
@@ -77,7 +39,7 @@ test('Should create a new user', async () => {
   expect(userExists).toBe(true)
 })
 
-test('Should expose public author profiles', async () => {
+test("Should expose public author profiles", async () => {
   const getUsers = gql`
     query {
       users {
@@ -94,60 +56,49 @@ test('Should expose public author profiles', async () => {
 
   expect(response.data.users.length).toBe(1)
   expect(response.data.users[0].email).toBe(null)
-  expect(response.data.users[0].name).toBe('Bob')
+  expect(response.data.users[0].name).toBe("Bob")
 })
 
-test('Should expose public posts', async () => {
-  const getPosts = gql`
-    query {
-      posts {
-        id
-        body
-        title
-        published
-      }
-    }
-  `
-
-  const response = await client.query({
-    query: getPosts
-  })
-
-  expect(response.data.posts.length).toBe(1)
-  expect(response.data.posts[0].published).toBe(true)
-})
-
-test('Should not login with bad credentials', async () => {
+test("Should not login with bad credentials", async () => {
   const login = gql`
     mutation {
-      login(
-        data: {
-          email: "bob@bob.com"
-          password: "blablabla"
-        }
-      ) {
+      login(data: { email: "bob@bob.com", password: "blablabla" }) {
         token
       }
     }
   `
 
-  await expect(client.mutate({mutation: login})).rejects.toThrow()
+  await expect(client.mutate({ mutation: login })).rejects.toThrow()
 })
 
-test('Should not create user if password is less than 8 characters', async () => {
+test("Should not create user if password is less than 8 characters", async () => {
   const createUser = gql`
     mutation {
       createUser(
-        data: {
-          name: "Jacob"
-          email: "jacob@test.com"
-          password: "bla1234"
-        }
+        data: { name: "Jacob", email: "jacob@test.com", password: "bla1234" }
       ) {
         token
       }
     }
   `
+  await expect(client.mutate({ mutation: createUser })).rejects.toThrow()
+})
 
-  await expect(client.mutate({mutation: createUser})).rejects.toThrow()
+test("Should fetch user profile", async () => {
+  const client = getClient(userOne.jwt)
+  const getProfile = gql`
+    query {
+      me {
+        id
+        name
+        email
+      }
+    }
+  `
+  // destructure response.data
+  const { data } = await client.query({ query: getProfile })
+
+  expect(data.me.id).toBe(userOne.user.id)
+  expect(data.me.name).toBe(userOne.user.name)
+  expect(data.me.email).toBe(userOne.user.email)
 })
