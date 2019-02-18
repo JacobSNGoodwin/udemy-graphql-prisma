@@ -1,15 +1,33 @@
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
-import prisma from '../../src/prisma'
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken"
+import prisma from "../../src/prisma"
 
 const userOne = {
   input: {
-    name: 'Bob',
-    email: 'bob@bob.com',
-    password: bcrypt.hashSync('blablabla1234')
+    name: "Bob",
+    email: "bob@bob.com",
+    password: bcrypt.hashSync("blablabla1234")
   },
   user: undefined,
   jwt: undefined
+}
+
+const postOne = {
+  input: {
+    title: "A published post",
+    body: "I cannot wait for my readers to read this",
+    published: true
+  },
+  post: undefined
+}
+
+const postTwo = {
+  input: {
+    title: "An unpublished post",
+    body: "I hope nobody reads this ever",
+    published: false
+  },
+  post: undefined
 }
 
 const seedDatabase = async () => {
@@ -23,11 +41,10 @@ const seedDatabase = async () => {
   })
   userOne.jwt = jwt.sign({ userId: userOne.user.id }, process.env.JWT_SECRET)
 
-  await prisma.mutation.createPost({
+  // Create post one
+  postOne.post = await prisma.mutation.createPost({
     data: {
-      title: 'A published post',
-      body: 'I cannot wait for my readers to read this',
-      published: true,
+      ...postOne.input,
       author: {
         connect: {
           id: userOne.user.id
@@ -35,12 +52,11 @@ const seedDatabase = async () => {
       }
     }
   })
-  
-  await prisma.mutation.createPost({
+
+  //Create post two
+  postTwo.post = await prisma.mutation.createPost({
     data: {
-      title: 'An unpublished post',
-      body: 'I hope nobody reads this ever',
-      published: false,
+      ...postTwo.input,
       author: {
         connect: {
           id: userOne.user.id
@@ -50,4 +66,4 @@ const seedDatabase = async () => {
   })
 }
 
-export { seedDatabase as default, userOne }
+export { seedDatabase as default, userOne, postOne, postTwo }
