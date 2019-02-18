@@ -1,6 +1,5 @@
 import 'cross-fetch/polyfill'
 import '@babel/polyfill'
-import { gql } from 'apollo-boost'
 
 import prisma from '../src/prisma'
 import seedDatabase, { userOne } from './utils/seedDatabase'
@@ -37,7 +36,7 @@ test('Should expose public author profiles', async () => {
     query: getUsers
   })
 
-  expect(response.data.users.length).toBe(1)
+  expect(response.data.users.length).toBe(2)
   expect(response.data.users[0].email).toBe(null)
   expect(response.data.users[0].name).toBe('Bob')
 })
