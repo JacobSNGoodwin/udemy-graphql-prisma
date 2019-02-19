@@ -4,11 +4,16 @@ import '@babel/polyfill'
 import prisma from '../src/prisma'
 import seedDatabase, {
   userOne,
+  postOne,
   commentOne,
   commentTwo
 } from './utils/seedDatabase'
 import getClient from './utils/getClient'
-import { deleteComment } from './utils/operations'
+import {
+  deleteComment,
+  subscribeToComments,
+  subscribeToPosts
+} from './utils/operations'
 
 const client = getClient()
 
@@ -43,4 +48,39 @@ test('Should not delete comment by other user', async () => {
   await expect(
     client.mutate({ mutation: deleteComment, variables })
   ).rejects.toThrow()
+})
+
+test('Should subscribe to comments for a post', async done => {
+  const variables = {
+    postId: postOne.post.id
+  }
+
+  client.subscribe({ query: subscribeToComments, variables }).subscribe({
+    next(response) {
+      expect(response.data.comment.mutation).toBe('DELETED')
+      done()
+    }
+  })
+
+  // Change a comment to trigger next
+  await prisma.mutation.deleteComment({
+    where: {
+      id: commentOne.comment.id
+    }
+  })
+})
+
+test('Should subscribe to post changes', async () => {
+  client.subscribe({ query: subscribeToPosts }).subscribe({
+    next(response) {
+      expect(response.data.post.mutation).toBe('DELETED')
+      done()
+    }
+  })
+
+  await prisma.mutation.deletePost({
+    where: {
+      id: postOne.post.id
+    }
+  })
 })
